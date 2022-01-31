@@ -32,9 +32,9 @@ function makeQueryAPICall(currentPage, setData, setErrorMsg) {
 
 async function makeDetailAPICall(items, setDetails) {
   const requests = [];
-  let lastCommitsUsers = [];
+  let lastCommitsUsers;
   let lastForkUser;
-  let ownerBio = '';
+  let ownerBio;
   items.forEach((item) => {
     requests.push(getConfig(item.commits_url));
     requests.push(getConfig(item.forks_url));
