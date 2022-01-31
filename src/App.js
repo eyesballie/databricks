@@ -8,6 +8,7 @@ import RepoTable from './RepoTable';
 import { makeQueryAPICall, ITEMS_PER_PAGE } from './DataManager';
 
 const MAX_RESPONSE_COUNT = 1000;
+const FIRST_PAGE = 1;
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,8 +18,8 @@ export default function App() {
 
   const onSubmit = () => {
     setQuery(document.getElementById('searchText').value);
-    setCurrentPage(1);
-    makeQueryAPICall(1, setData, setErrorMsg);
+    setCurrentPage(FIRST_PAGE);
+    makeQueryAPICall(FIRST_PAGE, setData, setErrorMsg);
   };
 
   const onClickPrev = () => {
@@ -58,7 +59,7 @@ export default function App() {
           aria-describedby="passwordHelpBlock"
         />
         <Button variant="primary" onClick={onSubmit}>Submit</Button>
-        <Button variant="primary" onClick={onClickPrev} disabled={query == null || currentPage === 1}>prev</Button>
+        <Button variant="primary" onClick={onClickPrev} disabled={query == null || currentPage === FIRST_PAGE}>prev</Button>
         <Button variant="primary" onClick={onClickNext} disabled={isNextDisabled()}>next</Button>
       </>
       <br />
