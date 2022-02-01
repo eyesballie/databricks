@@ -10,6 +10,10 @@ import { makeQueryAPICall, ITEMS_PER_PAGE } from './DataManager';
 const MAX_RESPONSE_COUNT = 1000;
 const FIRST_PAGE = 1;
 
+function sanitizeQuery(str) {
+  return str.replace(/[^\w. ]/gi, (c) => `&#${c.charCodeAt(0)};`);
+}
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState(null);
@@ -18,7 +22,8 @@ export default function App() {
 
   const onSubmit = () => {
     setErrorMsg(null);
-    setQuery(document.getElementById('searchText').value);
+    const sanitizedQuery = sanitizeQuery(document.getElementById('searchText').value);
+    setQuery(sanitizedQuery);
     setCurrentPage(FIRST_PAGE);
     makeQueryAPICall(FIRST_PAGE, setData, setErrorMsg);
   };
@@ -44,7 +49,7 @@ export default function App() {
     if (data.total_count > MAX_RESPONSE_COUNT) {
       return currentPage >= MAX_RESPONSE_COUNT / ITEMS_PER_PAGE;
     }
-    return Math.ceil(currentPage >= data.total_count / ITEMS_PER_PAGE);
+    return currentPage >= Math.ceil(data.total_count / ITEMS_PER_PAGE);
   };
 
   return (

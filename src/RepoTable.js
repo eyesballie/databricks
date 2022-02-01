@@ -10,14 +10,15 @@ function getDetailText(detail) {
     return null;
   }
   let alertMsg = '';
-  if (detail.lastCommitsUsers != null && detail.lastCommitsUsers.length > 0) {
-    alertMsg = alertMsg.concat('Last 3 commits by ${detail.lastCommitsUsers[2]');
+  const { lastCommitUsers, lastForkUser, ownerBio } = detail;
+  if (lastCommitUsers != null && lastCommitUsers.length > 0) {
+    alertMsg = alertMsg.concat(`Last 3 commits by ${lastCommitUsers}`);
   }
-  if (detail.lastForkUser != null && detail.lastForkUser.length > 0) {
-    alertMsg = alertMsg.concat(`The last fork was created by ${detail.lastForkUser}`);
+  if (lastForkUser != null && lastForkUser.length > 0) {
+    alertMsg = alertMsg.concat(`\nThe last fork was created by ${lastForkUser}`);
   }
-  if (detail.ownerBio != null && detail.ownerBio.length > 0) {
-    alertMsg = alertMsg.concat(`\nThe owner has this in their biography: "${detail.ownerBio}"`);
+  if (ownerBio != null && ownerBio.length > 0) {
+    alertMsg = alertMsg.concat(`\nThe owner has this in their biography: "${ownerBio}"`);
   }
   return alertMsg === '' ? 'Detail is currently not available' : alertMsg;
 }

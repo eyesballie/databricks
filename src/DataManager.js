@@ -2,6 +2,7 @@ import axios from 'axios';
 import token from './api_token/token';
 
 const ITEMS_PER_PAGE = 10;
+const FULFILLED_STATUS = 'fulfilled';
 
 function getConfig(url) {
   return {
@@ -24,6 +25,8 @@ function makeQueryAPICall(currentPage, setData, setErrorMsg) {
     .catch((error) => {
       if (error.response.status === 422) {
         setErrorMsg('Please type in a search query');
+      } else if (error.response.status === 403) {
+        setErrorMsg('API rate limit exceed, please try again later');
       } else {
         setErrorMsg('Something went wrong, please try again');
       }
@@ -32,11 +35,11 @@ function makeQueryAPICall(currentPage, setData, setErrorMsg) {
 
 async function makeDetailAPICall(items, setDetails) {
   const requests = [];
-  let lastCommitsUsers;
+  let lastCommitUsers;
   let lastForkUser;
   let ownerBio;
   items.forEach((item) => {
-    requests.push(getConfig(item.commits_url));
+    requests.push(getConfig(item.commits_url.replace(/{.*}/, '')));
     requests.push(getConfig(item.forks_url));
     requests.push(getConfig(item.owner.url));
   });
@@ -45,10 +48,19 @@ async function makeDetailAPICall(items, setDetails) {
   const responses = await Promise.allSettled(tasks);
   const details = [];
   for (let i = 0; i < responses.length; i += 3) {
-    lastCommitsUsers = responses[i].status === 'fulfilled' ? responses[i].value?.data : [];
-    lastForkUser = responses[i + 1].status === 'fulfilled' ? responses[i + 1].value.data[0]?.name : '';
-    ownerBio = responses[i + 2].status === 'fulfilled' ? responses[i + 2].value.data?.bio : '';
-    details.push({ lastCommitsUsers, lastForkUser, ownerBio });
+    if (responses[i].status === FULFILLED_STATUS) {
+      lastCommitUsers = '';
+      const limit = Math.min(responses[i].value.data.length, 3);
+      for (let j = 0; j < limit; j += 1) {
+        lastCommitUsers = lastCommitUsers.concat(responses[i].value.data[j].commit?.author?.name);
+        if (j !== limit - 1) {
+          lastCommitUsers = lastCommitUsers.concat(', ');
+        }
+      }
+    }
+    lastForkUser = responses[i + 1].status === FULFILLED_STATUS ? responses[i + 1].value.data[0]?.name : '';
+    ownerBio = responses[i + 2].status === FULFILLED_STATUS ? responses[i + 2].value.data?.bio : '';
+    details.push({ lastCommitUsers, lastForkUser, ownerBio });
   }
   setDetails(details);
 }
