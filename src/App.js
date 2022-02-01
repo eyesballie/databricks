@@ -19,31 +19,35 @@ export default function App() {
   const [query, setQuery] = useState(null);
   const [data, setData] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onButtonClick = (targetPage) => {
+    setErrorMsg(null);
+    setIsLoading(true);
+    makeQueryAPICall(targetPage, setData, setErrorMsg, setIsLoading);
+    setCurrentPage(targetPage);
+  };
 
   const onSubmit = () => {
-    setErrorMsg(null);
     const sanitizedQuery = sanitizeQuery(document.getElementById('searchText').value);
     setQuery(sanitizedQuery);
-    setCurrentPage(FIRST_PAGE);
-    makeQueryAPICall(FIRST_PAGE, setData, setErrorMsg);
+    onButtonClick(FIRST_PAGE);
   };
 
   const onClickPrev = () => {
-    setErrorMsg(null);
     const targetPage = currentPage - 1;
-    makeQueryAPICall(targetPage, setData, setErrorMsg);
-    setCurrentPage(targetPage);
+    onButtonClick(targetPage);
   };
 
   const onClickNext = () => {
-    setErrorMsg(null);
     const targetPage = currentPage + 1;
-    makeQueryAPICall(targetPage, setData, setErrorMsg);
-    setCurrentPage(targetPage);
+    onButtonClick(targetPage);
   };
 
+  const isPrevDisabled = () => query == null || currentPage === FIRST_PAGE || isLoading;
+
   const isNextDisabled = () => {
-    if (query == null || data?.total_count == null) {
+    if (query == null || data?.total_count == null || isLoading) {
       return true;
     }
     if (data.total_count > MAX_RESPONSE_COUNT) {
@@ -67,7 +71,7 @@ export default function App() {
           aria-describedby="passwordHelpBlock"
         />
         <Button variant="primary" onClick={onSubmit}>Submit</Button>
-        <Button variant="primary" onClick={onClickPrev} disabled={query == null || currentPage === FIRST_PAGE}>prev</Button>
+        <Button variant="primary" onClick={onClickPrev} disabled={isPrevDisabled()}>prev</Button>
         <Button variant="primary" onClick={onClickNext} disabled={isNextDisabled()}>next</Button>
       </>
       <br />

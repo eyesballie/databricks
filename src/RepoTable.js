@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
@@ -24,10 +24,8 @@ function getDetailText(detail) {
 }
 
 export default function RepoTable({ items }) {
-  const [details, setDetails] = useState(null);
-  useEffect(() => {
-    makeDetailAPICall(items, setDetails);
-  }, [items]);
+  const [targetIndex, setTargetIndex] = useState(null);
+  const [isLoading, setLoading] = useState(false);
 
   if (items == null || items.length === 0) {
     return null;
@@ -47,9 +45,12 @@ export default function RepoTable({ items }) {
         </thead>
         <tbody>
           {items.map((item, key) => {
-            const onClickDetails = () => {
+            const onClickDetails = async () => {
+              setLoading(true);
+              setTargetIndex(key);
+              const detail = await makeDetailAPICall(item, setLoading);
               // eslint-disable-next-line no-alert
-              alert(getDetailText(details[key]));
+              alert(getDetailText(detail));
             };
             return (
               <tr>
@@ -57,7 +58,16 @@ export default function RepoTable({ items }) {
                 <td>{item.owner.login}</td>
                 <td>{item.stargazers_count}</td>
                 <td><a target="blank" href={item.html_url}>{item.full_name}</a></td>
-                <td><Button variant="primary" onClick={onClickDetails}>Details</Button></td>
+                <td>
+                  <Button
+                    variant="primary"
+                    disabled={key === targetIndex && isLoading}
+                    onClick={onClickDetails}
+                  >
+                    Details
+                  </Button>
+
+                </td>
               </tr>
             );
           })}
