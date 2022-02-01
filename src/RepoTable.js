@@ -4,6 +4,7 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import PropTypes from 'prop-types';
 import { makeDetailAPICall } from './DataManager';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function getDetailText(detail) {
   if (detail == null) {
@@ -33,7 +34,7 @@ export default function RepoTable({ items }) {
 
   return (
     <Row>
-      <Table>
+      <Table class="table table-striped">
         <thead>
           <tr>
             <th>Name</th>
@@ -66,7 +67,6 @@ export default function RepoTable({ items }) {
                   >
                     Details
                   </Button>
-
                 </td>
               </tr>
             );

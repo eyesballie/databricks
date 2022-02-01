@@ -1,6 +1,6 @@
 .DS_Store
 .CFUserTextEncoding
 .localized
-.src/api_token
+.src/api_token/token.js
 
 **/node_modules/

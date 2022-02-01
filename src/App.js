@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import Container from 'react-bootstrap/Container';
-import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import Card from 'react-bootstrap/Card';
 import RepoTable from './RepoTable';
-import { makeQueryAPICall, ITEMS_PER_PAGE } from './DataManager';
+import { makeQueryAPICall, ITEMS_PER_PAGE, ERROR_CODE } from './DataManager';
 
 const MAX_RESPONSE_COUNT = 1000;
 const FIRST_PAGE = 1;
 
 function sanitizeQuery(str) {
   return str.replace(/[^\w. ]/gi, (c) => `&#${c.charCodeAt(0)};`);
+}
+
+function getSanitizeSearchTerm() {
+  return sanitizeQuery(document.getElementById('searchText').value);
 }
 
 export default function App() {
@@ -21,16 +24,35 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const onButtonClick = (targetPage) => {
+  const onButtonClick = async (targetPage) => {
     setErrorMsg(null);
     setIsLoading(true);
-    makeQueryAPICall(targetPage, setData, setErrorMsg, setIsLoading);
+    setData(null);
+    setErrorMsg(null);
+    const { errorCode, responseData } = await makeQueryAPICall(getSanitizeSearchTerm(), targetPage);
+
+    switch (errorCode) {
+      case null:
+        setData(responseData);
+        break;
+      case ERROR_CODE.EMPTY_SEARCH_TERM:
+        setErrorMsg('Please type in a search query');
+        break;
+      case ERROR_CODE.RATE_LIMIT:
+        setErrorMsg('Reached API rate limit, please try again later');
+        break;
+      case ERROR_CODE.OTHER:
+        setErrorMsg('Something went wrong, please try again');
+        break;
+      default:
+        break;
+    }
+    setIsLoading(false);
     setCurrentPage(targetPage);
   };
 
   const onSubmit = () => {
-    const sanitizedQuery = sanitizeQuery(document.getElementById('searchText').value);
-    setQuery(sanitizedQuery);
+    setQuery(getSanitizeSearchTerm());
     onButtonClick(FIRST_PAGE);
   };
 
@@ -64,16 +86,16 @@ export default function App() {
         </Card.Body>
       </Card>
       <br />
-      <>
-        <Form.Control
-          type="text"
-          id="searchText"
-          aria-describedby="passwordHelpBlock"
-        />
-        <Button variant="primary" onClick={onSubmit}>Submit</Button>
-        <Button variant="primary" onClick={onClickPrev} disabled={isPrevDisabled()}>prev</Button>
-        <Button variant="primary" onClick={onClickNext} disabled={isNextDisabled()}>next</Button>
-      </>
+      <div className="btn-toolbar mb-3">
+        <div className="mr-2">
+          <input type="text" className="form-control mr-sm-2" id="searchText" data-testid="searchText-input" placeholder="Search..." />
+        </div>
+        <div className="btn-group" role="group">
+          <Button variant="primary" onClick={onSubmit} disabled={isLoading} data-testid="submit-button">Submit</Button>
+          <Button variant="primary" onClick={onClickPrev} disabled={isPrevDisabled()} data-testid="prev-button">prev</Button>
+          <Button variant="primary" onClick={onClickNext} disabled={isNextDisabled()} data-testid="next-button">next</Button>
+        </div>
+      </div>
       <br />
       {errorMsg == null ? <RepoTable items={data?.items} /> : <Alert variant="danger">{errorMsg}</Alert>}
     </Container>
