@@ -17,18 +17,21 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState(null);
 
   const onSubmit = () => {
+    setErrorMsg(null);
     setQuery(document.getElementById('searchText').value);
     setCurrentPage(FIRST_PAGE);
     makeQueryAPICall(FIRST_PAGE, setData, setErrorMsg);
   };
 
   const onClickPrev = () => {
+    setErrorMsg(null);
     const targetPage = currentPage - 1;
     makeQueryAPICall(targetPage, setData, setErrorMsg);
     setCurrentPage(targetPage);
   };
 
   const onClickNext = () => {
+    setErrorMsg(null);
     const targetPage = currentPage + 1;
     makeQueryAPICall(targetPage, setData, setErrorMsg);
     setCurrentPage(targetPage);
