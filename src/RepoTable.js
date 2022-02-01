@@ -66,7 +66,6 @@ export default function RepoTable({ items }) {
                   >
                     Details
                   </Button>
-
                 </td>
               </tr>
             );
