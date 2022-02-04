@@ -14,25 +14,26 @@ function getConfig(url) {
   };
 }
 
-function makeQueryAPICall(currentPage, setData, setErrorMsg, setIsLoading) {
-  const config = getConfig(`https://api.github.com/search/repositories?q=${document.getElementById('searchText').value}&sort=stars&order=desc&per_page=${ITEMS_PER_PAGE}&page=${currentPage}&accept=application/vnd.github.v3+json`);
-  axios(config)
-    .then((response) => {
-      setIsLoading(false);
-      if (response.headers['x-ratelimit-remaining'] === 0) {
-        setErrorMsg('Reached API rate limit, please try again later');
-      } else if (setData != null) {
-        setData(response.data);
-      }
-    })
-    .catch((error) => {
-      setIsLoading(false);
-      if (error.response.status === 422) {
-        setErrorMsg('Please type in a search query');
-      } else {
-        setErrorMsg('Something went wrong, please try again');
-      }
-    });
+async function makeQueryAPICall(searchTerm, currentPage, setData, setErrorMsg, setIsLoading) {
+  const config = getConfig(`https://api.github.com/search/repositories?q=${searchTerm}&sort=stars&order=desc&per_page=${ITEMS_PER_PAGE}&page=${currentPage}&accept=application/vnd.github.v3+json`);
+  let response;
+  try {
+    setIsLoading(true);
+    response = await axios(config);
+    if (response.headers['x-ratelimit-remaining'] === 0) {
+      setErrorMsg('Reached API rate limit, please try again later');
+    } else if (setData != null) {
+      setData(response.data);
+    }
+  } catch (error) {
+    if (error.response.status === 422) {
+      setErrorMsg('Please type in a search query');
+    } else {
+      setErrorMsg('Something went wrong, please try again');
+    }
+  }
+  setIsLoading(false);
+  return response;
 }
 
 async function makeDetailAPICall(item, setLoading) {

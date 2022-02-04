@@ -14,6 +14,10 @@ function sanitizeQuery(str) {
   return str.replace(/[^\w. ]/gi, (c) => `&#${c.charCodeAt(0)};`);
 }
 
+function getSanitizeSearchTerm() {
+  return sanitizeQuery(document.getElementById('searchText').value);
+}
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState(null);
@@ -21,16 +25,14 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const onButtonClick = (targetPage) => {
+  const onButtonClick = async (targetPage) => {
     setErrorMsg(null);
-    setIsLoading(true);
-    makeQueryAPICall(targetPage, setData, setErrorMsg, setIsLoading);
+    await makeQueryAPICall(getSanitizeSearchTerm(), targetPage, setData, setErrorMsg, setIsLoading);
     setCurrentPage(targetPage);
   };
 
   const onSubmit = () => {
-    const sanitizedQuery = sanitizeQuery(document.getElementById('searchText').value);
-    setQuery(sanitizedQuery);
+    setQuery(getSanitizeSearchTerm());
     onButtonClick(FIRST_PAGE);
   };
 
@@ -68,11 +70,12 @@ export default function App() {
         <Form.Control
           type="text"
           id="searchText"
+          data-testid="searchText-input"
           aria-describedby="passwordHelpBlock"
         />
-        <Button variant="primary" onClick={onSubmit}>Submit</Button>
-        <Button variant="primary" onClick={onClickPrev} disabled={isPrevDisabled()}>prev</Button>
-        <Button variant="primary" onClick={onClickNext} disabled={isNextDisabled()}>next</Button>
+        <Button variant="primary" onClick={onSubmit} data-testid="submit-button">Submit</Button>
+        <Button variant="primary" onClick={onClickPrev} disabled={isPrevDisabled()} data-testid="prev-button">prev</Button>
+        <Button variant="primary" onClick={onClickNext} disabled={isNextDisabled()} data-testid="next-button">next</Button>
       </>
       <br />
       {errorMsg == null ? <RepoTable items={data?.items} /> : <Alert variant="danger">{errorMsg}</Alert>}
