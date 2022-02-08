@@ -2,7 +2,7 @@ import axios from 'axios';
 import {
   jest, describe, test, expect,
 } from '@jest/globals';
-import { makeQueryAPICall, ITEMS_PER_PAGE } from '../DataManager';
+import { makeQueryAPICall, ITEMS_PER_PAGE, ERROR_CODE } from '../DataManager';
 import token from '../api_token/token';
 
 jest.mock('axios');
@@ -24,7 +24,7 @@ describe('makeQueryAPICall', () => {
   };
 
   // Test that correct params are passed to external API call
-  test('Makes API call to GitHub, with the searchTerm as param', async () => {
+  test('Makes API call to GitHub, with correct query params', async () => {
     axios.mockResolvedValue(response);
     await makeQueryAPICall(searchTerm, currentPage, setData, setErrorMsg, setIsLoading);
 
@@ -40,8 +40,9 @@ describe('makeQueryAPICall', () => {
   describe('When the request is successful', () => {
     test('Set data which comes from the response', async () => {
       axios.mockResolvedValue(response);
-      await makeQueryAPICall(searchTerm, currentPage, setData, setErrorMsg, setIsLoading);
-      expect(setData).toHaveBeenCalledWith(response.data);
+      const { errorCode, responseData } = await makeQueryAPICall(searchTerm, currentPage);
+      expect(errorCode).toBeUndefined();
+      expect(responseData).toBeDefined();
     });
 
     describe('When rate limit is reached', () => {
@@ -49,10 +50,10 @@ describe('makeQueryAPICall', () => {
         headers: { 'x-ratelimit-remaining': 0 },
       };
 
-      test('Set error message with relevant guidance', async () => {
+      test('Returns rate limit error code', async () => {
         axios.mockResolvedValue(rateLimitResponse);
-        await makeQueryAPICall(searchTerm, currentPage, setData, setErrorMsg, setIsLoading);
-        expect(setErrorMsg).toHaveBeenCalledWith('Reached API rate limit, please try again later');
+        const { errorCode } = await makeQueryAPICall(searchTerm, currentPage);
+        expect(errorCode).toEqual(ERROR_CODE.RATE_LIMIT);
       });
     });
   });
@@ -64,10 +65,10 @@ describe('makeQueryAPICall', () => {
       },
     };
 
-    test('Set error message with empty search query notice', async () => {
+    test('Returns empty query error code', async () => {
       axios.mockRejectedValue(errorResponse);
-      await makeQueryAPICall(searchTerm, currentPage, setData, setErrorMsg, setIsLoading);
-      expect(setErrorMsg).toHaveBeenCalledWith('Please type in a search query');
+      const { errorCode } = await makeQueryAPICall(searchTerm, currentPage);
+      expect(errorCode).toEqual(ERROR_CODE.EMPTY_SEARCH_TERM);
     });
   });
 
@@ -98,6 +99,14 @@ describe('makeDetailAPICall', () => {
   });
 
   describe('When fetching commits info fails', () => {
+    // TODO
+  });
+
+  describe('When fetching forks info fails', () => {
+    // TODO
+  });
+
+  describe('When fetching owner info fails', () => {
     // TODO
   });
 });

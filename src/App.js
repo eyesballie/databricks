@@ -5,7 +5,7 @@ import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import Card from 'react-bootstrap/Card';
 import RepoTable from './RepoTable';
-import { makeQueryAPICall, ITEMS_PER_PAGE } from './DataManager';
+import { makeQueryAPICall, ITEMS_PER_PAGE, ERROR_CODE } from './DataManager';
 
 const MAX_RESPONSE_COUNT = 1000;
 const FIRST_PAGE = 1;
@@ -26,8 +26,25 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   const onButtonClick = async (targetPage) => {
+    setIsLoading(true);
+    setData(null);
     setErrorMsg(null);
-    await makeQueryAPICall(getSanitizeSearchTerm(), targetPage, setData, setErrorMsg, setIsLoading);
+    const { errorCode, responseData } = await makeQueryAPICall(getSanitizeSearchTerm(), targetPage);
+
+    switch (errorCode) {
+      case ERROR_CODE.EMPTY_SEARCH_TERM:
+        setErrorMsg('Please type in a search query');
+        break;
+      case ERROR_CODE.RATE_LIMIT:
+        setErrorMsg('Please type in a search query');
+        break;
+      case ERROR_CODE.OTHER:
+        setErrorMsg('Something went wrong, please try again');
+        break;
+      default:
+        setData(responseData);
+    }
+    setIsLoading(false);
     setCurrentPage(targetPage);
   };
 
@@ -73,7 +90,7 @@ export default function App() {
           data-testid="searchText-input"
           aria-describedby="passwordHelpBlock"
         />
-        <Button variant="primary" onClick={onSubmit} data-testid="submit-button">Submit</Button>
+        <Button variant="primary" onClick={onSubmit} disabled={isLoading} data-testid="submit-button">Submit</Button>
         <Button variant="primary" onClick={onClickPrev} disabled={isPrevDisabled()} data-testid="prev-button">prev</Button>
         <Button variant="primary" onClick={onClickNext} disabled={isNextDisabled()} data-testid="next-button">next</Button>
       </>
