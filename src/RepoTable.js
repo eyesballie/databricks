@@ -4,6 +4,7 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import PropTypes from 'prop-types';
 import { makeDetailAPICall } from './DataManager';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function getDetailText(detail) {
   if (detail == null) {
@@ -33,7 +34,7 @@ export default function RepoTable({ items }) {
 
   return (
     <Row>
-      <Table>
+      <Table striped bordered hover>
         <thead>
           <tr>
             <th>Name</th>
@@ -48,7 +49,8 @@ export default function RepoTable({ items }) {
             const onClickDetails = async () => {
               setLoading(true);
               setTargetIndex(key);
-              const detail = await makeDetailAPICall(item, setLoading);
+              const detail = await makeDetailAPICall(item);
+              setLoading(false);
               // eslint-disable-next-line no-alert
               alert(getDetailText(detail));
             };
