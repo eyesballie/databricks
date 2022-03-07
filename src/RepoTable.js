@@ -49,9 +49,10 @@ export default function RepoTable({ items }) {
             const onClickDetails = async () => {
               setLoading(true);
               setTargetIndex(key);
-              const detail = await makeDetailAPICall(item, setLoading);
+              const detail = await makeDetailAPICall(item);
               // eslint-disable-next-line no-alert
               alert(getDetailText(detail));
+              setLoading(false);
             };
             return (
               <tr>

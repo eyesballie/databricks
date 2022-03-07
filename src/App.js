@@ -97,7 +97,7 @@ export default function App() {
         </div>
       </div>
       <br />
-      {errorMsg == null ? <RepoTable items={data?.items} /> : <Alert variant="danger">{errorMsg}</Alert>}
+      {errorMsg == null ? <RepoTable items={data?.items} /> : <Alert variant="danger" data-testid="table-error-message">{errorMsg}</Alert>}
     </Container>
   );
 }

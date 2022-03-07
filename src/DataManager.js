@@ -42,7 +42,7 @@ async function makeQueryAPICall(searchTerm, currentPage) {
   };
 }
 
-async function makeDetailAPICall(item, setLoading) {
+async function makeDetailAPICall(item) {
   const requests = [];
   requests.push(getConfig(item.commits_url.replace(/{.*}/, '')));
   requests.push(getConfig(item.forks_url));
@@ -62,7 +62,6 @@ async function makeDetailAPICall(item, setLoading) {
   }
   const lastForkUser = responses[1].status === FULFILLED_STATUS ? responses[1].value.data[0]?.name : '';
   const ownerBio = responses[2].status === FULFILLED_STATUS ? responses[2].value.data?.bio : '';
-  setLoading(false);
   return { lastCommitUsers, lastForkUser, ownerBio };
 }
 

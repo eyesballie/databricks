@@ -54,10 +54,10 @@ describe('When user submit a new search', () => {
     expect(screen.getByTestId('next-button')).toBeDisabled();
   });
 
-  // test('When an error is returned, alert the user', async () => {
-  //   global.alert = jest.fn();
-  //   const queryResult = { errorCode: ERROR_CODE.RATE_LIMIT, responseData: {} };
-  //   await renderAndSubmitNewMockQueryAPICall(SEARCH_TERM, queryResult);
-  //   expect(Alert).toHaveBeenCalledWith(SEARCH_TERM, 1);
-  // });
+  test('When an error is returned, alert the user', async () => {
+    global.alert = jest.fn();
+    const queryResult = { errorCode: ERROR_CODE.RATE_LIMIT, responseData: {} };
+    await renderAndSubmitNewMockQueryAPICall(SEARCH_TERM, queryResult);
+    expect(screen.getByTestId('table-error-message')).toBeEnabled();
+  });
 });
