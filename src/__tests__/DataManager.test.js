@@ -2,6 +2,7 @@ import axios from 'axios';
 import {
   jest, describe, test, expect,
 } from '@jest/globals';
+import { when } from 'jest-when';
 import {
   makeQueryAPICall, makeDetailAPICall, ITEMS_PER_PAGE, ERROR_CODE,
 } from '../DataManager';
@@ -81,88 +82,132 @@ describe('makeDetailAPICall', () => {
   const forksUrl = 'https://api.github.com/repos/apache/echarts/forks';
   const ownerUrl = 'https://api.github.com/users/apache';
 
-  // mock return values
-  //   axios.get.mockImplementation((url) => {
-  //     console.log('url', url);
-  //     switch (url) {
-  //       case commitsUrl:
-  //         return Promise.resolve({
-  //           status: 'fulfilled',
-  //           value: {
-  //             data: [{
-  //               commit: { author: { name: 'Test User1' } },
-  //             }, {
-  //               commit: { author: { name: 'Test User2' } },
-  //             }, {
-  //               commit: { author: { name: 'Test User3' } },
-  //             }],
-  //           },
-  //         });
-  //       case forksUrl:
-  //         return Promise.resolve({
-  //           status: 'fulfilled',
-  //           value: {
-  //             data: [{
-  //               name: 'testUserName',
-  //             }],
-  //           },
-  //         });
-  //       case ownerUrl:
-  //         return Promise.resolve({
-  //           status: 'fulfilled',
-  //           value: {
-  //             data: {
-  //               bio: 'A Test Bio',
-  //             },
-  //           },
-  //         });
-  //       default:
-  //         return Promise.reject(new Error('not found'));
-  //     }
-  //   });
+  const requests = [{
+    method: 'get',
+    url: commitsUrl,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }, {
+    method: 'get',
+    url: forksUrl,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }, {
+    method: 'get',
+    url: ownerUrl,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }];
 
-  test('Makes API call to GitHub, with correct query params', async () => {
-    const item = {
-      commits_url: commitsUrl,
-      forks_url: forksUrl,
-      owner: {
-        url: ownerUrl,
+  // The param when making function call
+  const item = {
+    commits_url: commitsUrl,
+    forks_url: forksUrl,
+    owner: {
+      url: ownerUrl,
+    },
+  };
+
+  test('When fetching commits info fails, return empty results', async () => {
+    when(axios).calledWith({
+      method: 'get',
+      url: commitsUrl,
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    };
-    const response = {
+    }, 0, requests).mockRejectedValue(
+      'There\'s something wrong',
+    );
+
+    const { lastCommitUsers } = await makeDetailAPICall(item);
+    expect(lastCommitUsers).toEqual('');
+  });
+
+  test('When fetching commits info succeeds, return expected results', async () => {
+    when(axios).calledWith({
+      method: 'get',
+      url: commitsUrl,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }, 0, requests).mockReturnValue({
+      data: [{
+        commit: { author: { name: 'Test User1' } },
+      }, {
+        commit: { author: { name: 'Test User2' } },
+      }, {
+        commit: { author: { name: 'Test User3' } },
+      }],
+    });
+
+    const { lastCommitUsers } = await makeDetailAPICall(item);
+    expect(lastCommitUsers).toEqual('Test User1, Test User2, Test User3');
+  });
+
+  test('When fetching fork info fails, return empty results', async () => {
+    when(axios).calledWith({
+      method: 'get',
+      url: forksUrl,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }, 1, requests).mockRejectedValue(
+      'There\'s something wrong',
+    );
+
+    const { lastForkUser } = await makeDetailAPICall(item);
+    expect(lastForkUser).toEqual('');
+  });
+
+  test('When fetching fork info succeeds, return expected results', async () => {
+    when(axios).calledWith({
+      method: 'get',
+      url: forksUrl,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }, 1, requests).mockReturnValue({
+      data: [{
+        name: 'testUserName',
+      }],
+    });
+
+    const { lastForkUser } = await makeDetailAPICall(item);
+    expect(lastForkUser).toEqual('testUserName');
+  });
+
+  test('When fetching owner bio fails, return empty results', async () => {
+    when(axios).calledWith({
+      method: 'get',
+      url: ownerUrl,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }, 2, requests).mockRejectedValue(
+      'There\'s something wrong',
+    );
+
+    const { ownerBio } = await makeDetailAPICall(item);
+    expect(ownerBio).toEqual('');
+  });
+
+  test('When fetching owner bio succeeds, return expected results', async () => {
+    when(axios).calledWith({
+      method: 'get',
+      url: ownerUrl,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }, 2, requests).mockReturnValue({
       data: {
         bio: 'A Test Bio',
       },
-    };
-    axios.mockResolvedValue(response);
-    await makeDetailAPICall(item);
+    });
 
-    expect(axios).toHaveBeenCalled();
+    const { ownerBio } = await makeDetailAPICall(item);
+    expect(ownerBio).toEqual('A Test Bio');
   });
-
-  //   test('Fetch forks info', () => {
-  //     // TODO: assert that it calls axios with correct info
-  //   });
-
-  //   test('Fetch owner info', () => {
-  //     // TODO: assert that it calls axios with correct info
-  //   });
-
-  //   describe('When all calls are successful', () => {
-  //     test('Returns with info', () => {
-  //       // TODO: assert return value of makeDetailAPICall
-  //     });
-  //   });
-
-  //   describe('When fetching commits info fails', () => {
-  //     // TODO
-  //   });
-
-  //   describe('When fetching forks info fails', () => {
-  //     // TODO
-  //   });
-
-//   describe('When fetching owner info fails', () => {
-//     // TODO
-//   });
 });

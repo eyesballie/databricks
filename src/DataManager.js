@@ -47,12 +47,15 @@ async function makeDetailAPICall(item) {
   requests.push(getConfig(item.commits_url.replace(/{.*}/, '')));
   requests.push(getConfig(item.forks_url));
   requests.push(getConfig(item.owner.url));
-
+  console.log('requests', requests);
   const tasks = requests.map(axios);
   const responses = await Promise.allSettled(tasks);
+  console.log('responses', responses);
   let lastCommitUsers = '';
   if (responses[0].status === FULFILLED_STATUS) {
-    const limit = Math.min(responses[0].value.data.length, 3);
+    const limit = (responses[0].value == null || responses[0].value.data == null)
+      ? 0
+      : Math.min(responses[0].value.data.length, 3);
     for (let j = 0; j < limit; j += 1) {
       lastCommitUsers = lastCommitUsers.concat(responses[0].value.data[j].commit?.author?.name);
       if (j !== limit - 1) {
@@ -60,8 +63,8 @@ async function makeDetailAPICall(item) {
       }
     }
   }
-  const lastForkUser = responses[1].status === FULFILLED_STATUS ? responses[1].value.data[0]?.name : '';
-  const ownerBio = responses[2].status === FULFILLED_STATUS ? responses[2].value.data?.bio : '';
+  const lastForkUser = responses[1].status === FULFILLED_STATUS ? responses[1].value?.data[0]?.name : '';
+  const ownerBio = responses[2].status === FULFILLED_STATUS ? responses[2].value?.data?.bio : '';
   return { lastCommitUsers, lastForkUser, ownerBio };
 }
 
