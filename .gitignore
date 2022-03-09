@@ -2,5 +2,6 @@
 .CFUserTextEncoding
 .localized
 .src/api_token/token.js
+.env
 
 **/node_modules/

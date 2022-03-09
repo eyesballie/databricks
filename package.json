@@ -37,8 +37,7 @@
     "jest": {
         "moduleNameMapper": {
             "\\.(css|less)$": "identity-obj-proxy"
-        },
-        "testEnvironment": "jsdom"
+        }
     },
     "dependencies": {
         "@jest/globals": "^27.5.1",

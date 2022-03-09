@@ -1,5 +1,4 @@
 import axios from 'axios';
-import token from './api_token/token';
 
 const ITEMS_PER_PAGE = 10;
 const FULFILLED_STATUS = 'fulfilled';
@@ -14,7 +13,7 @@ function getConfig(url) {
     method: 'get',
     url,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${process.env.REACT_APP_GITHUB_API_TOKEN}`,
     },
   };
 }
@@ -47,10 +46,8 @@ async function makeDetailAPICall(item) {
   requests.push(getConfig(item.commits_url.replace(/{.*}/, '')));
   requests.push(getConfig(item.forks_url));
   requests.push(getConfig(item.owner.url));
-  console.log('requests', requests);
   const tasks = requests.map(axios);
   const responses = await Promise.allSettled(tasks);
-  console.log('responses', responses);
   let lastCommitUsers = '';
   if (responses[0].status === FULFILLED_STATUS) {
     const limit = (responses[0].value == null || responses[0].value.data == null)
