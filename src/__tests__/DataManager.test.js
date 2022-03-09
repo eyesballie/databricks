@@ -6,11 +6,10 @@ import { when } from 'jest-when';
 import {
   makeQueryAPICall, makeDetailAPICall, ITEMS_PER_PAGE, ERROR_CODE,
 } from '../DataManager';
-import token from '../api_token/token';
 import 'regenerator-runtime/runtime';
 
 jest.mock('axios');
-jest.mock('../api_token/token', () => 'mock-token');
+const token = process.env.REACT_APP_GITHUB_API_TOKEN;
 
 describe('makeQueryAPICall', () => {
   // Mock function params
